@@ -2,7 +2,7 @@
 using Domain.Entities;
 using Domain.Enums;
 
-namespace Application.Interfaces
+namespace Application.Interfaces.Providers
 {
     public interface INotificationSender
     {

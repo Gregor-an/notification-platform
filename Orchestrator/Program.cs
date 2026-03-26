@@ -1,4 +1,5 @@
 using Infrastructure.DependencyInjection;
+using Orchestrator.Services;
 using Orchestrator.Workers;
 
 namespace Orchestrator
@@ -10,6 +11,7 @@ namespace Orchestrator
             var builder = Host.CreateApplicationBuilder(args);
 
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddScoped<NotificationProcessingService>();
             builder.Services.AddHostedService<NotificationProcessingWorker>();
 
             var host = builder.Build();

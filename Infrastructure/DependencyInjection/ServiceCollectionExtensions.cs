@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Interfaces.Providers;
+using Application.Interfaces.Repositories;
 using Infrastructure.Persistence;
 using Infrastructure.Providers;
 using Infrastructure.Repositories;

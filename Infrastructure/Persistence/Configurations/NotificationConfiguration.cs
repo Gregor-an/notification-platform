@@ -14,6 +14,8 @@ namespace Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id)
+                .ValueGeneratedNever();
 
             builder.Property(x => x.ChannelType).IsRequired();
             builder.Property(x => x.Priority).IsRequired();
@@ -39,8 +41,12 @@ namespace Infrastructure.Persistence.Configurations
                     .IsRequired();
             });
 
-            builder.Metadata.FindNavigation(nameof(Notification.Attempts))!
-                .SetPropertyAccessMode(PropertyAccessMode.Field);
+            builder.HasMany(x => x.Attempts)
+                .WithOne()
+                .HasForeignKey(x => x.NotificationId);
+
+            builder.Navigation(x => x.Attempts)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

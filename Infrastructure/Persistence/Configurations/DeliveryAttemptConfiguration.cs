@@ -9,13 +9,15 @@ namespace Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<DeliveryAttempt> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id)
+                .ValueGeneratedNever();
 
             builder.Property(x => x.AttemptNumber).IsRequired();
             builder.Property(x => x.Status).IsRequired();
             builder.Property(x => x.CreatedUtc).IsRequired();
 
             builder.HasOne<Notification>()
-                .WithMany(nameof(Notification.Attempts))
+                .WithMany(x => x.Attempts)
                 .HasForeignKey(x => x.NotificationId);
         }
     }
