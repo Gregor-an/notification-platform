@@ -1,3 +1,5 @@
+using Application.Notifications.Commands.CreateNotification;
+using Infrastructure.DependencyInjection;
 
 namespace API
 {
@@ -7,10 +9,12 @@ namespace API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddScoped<CreateNotificationCommandHandler>();
 
             var app = builder.Build();
 
@@ -21,10 +25,6 @@ namespace API
             }
 
             app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

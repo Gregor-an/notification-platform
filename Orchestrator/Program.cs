@@ -1,3 +1,6 @@
+using Infrastructure.DependencyInjection;
+using Orchestrator.Workers;
+
 namespace Orchestrator
 {
     public class Program
@@ -5,7 +8,9 @@ namespace Orchestrator
         public static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
-            builder.Services.AddHostedService<Worker>();
+
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddHostedService<NotificationProcessingWorker>();
 
             var host = builder.Build();
             host.Run();
