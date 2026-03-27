@@ -25,13 +25,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{944ADAC9-206B-422C-B39B-36D37FD52164}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{B72CBE1C-D6DD-4846-9FAC-82412EA6B8B6}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{4E02BDDE-A731-48E9-BD5B-2C50A73AD412}"
-	ProjectSection(SolutionItems) = preProject
-		dotnet-ci.yml = dotnet-ci.yml
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,7 +81,6 @@ Global
 		{BB422214-C118-475A-8E81-8B0C4A7190EE} = {2DC995E0-BF77-4135-A323-2E03BE1AE8CA}
 		{F862FEFE-29F0-4979-A050-687C84F49BF4} = {88E3F940-83AD-43DD-A657-18DAD00CF0B0}
 		{944ADAC9-206B-422C-B39B-36D37FD52164} = {88E3F940-83AD-43DD-A657-18DAD00CF0B0}
-		{4E02BDDE-A731-48E9-BD5B-2C50A73AD412} = {B72CBE1C-D6DD-4846-9FAC-82412EA6B8B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {18F3F888-9DE1-4ECF-9C6F-8F2EA0579BFD}
