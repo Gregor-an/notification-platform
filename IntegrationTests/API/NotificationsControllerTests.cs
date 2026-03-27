@@ -27,8 +27,8 @@ namespace IntegrationTests.API
                 Recipient = recipient,
                 Subject = "Test Subject",
                 Body = "Test Body",
-                ChannelType = (int)ChannelType.Email,
-                Priority = (int)NotificationPriority.Normal
+                ChannelType = ChannelType.Email,
+                Priority = NotificationPriority.Normal
             };
 
         [Fact]
