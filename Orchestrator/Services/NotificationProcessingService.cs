@@ -1,6 +1,8 @@
 ﻿using Application.Interfaces.Providers;
 using Application.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Orchestrator.Settings;
 
 namespace Orchestrator.Services
 {
@@ -10,16 +12,21 @@ namespace Orchestrator.Services
         private readonly IReadOnlyList<INotificationSender> _senders;
         private readonly ILogger<NotificationProcessingService> _logger;
 
-        public NotificationProcessingService(INotificationRepository repository, IEnumerable<INotificationSender> senders, ILogger<NotificationProcessingService> logger)
+        private readonly NotificationProcessingOptions _options;
+
+        public NotificationProcessingService(INotificationRepository repository, 
+            IEnumerable<INotificationSender> senders, ILogger<NotificationProcessingService> logger,
+            IOptions<NotificationProcessingOptions> options)
         {
             _repository = repository;
             _senders = senders.ToList();
             _logger = logger;
+            _options = options.Value;
         }
 
         public async Task ProcessPendingAsync(CancellationToken cancellationToken)
         {
-            var notifications = await _repository.GetPendingBatchAsync(10, cancellationToken);
+            var notifications = await _repository.GetPendingBatchAsync(_options.BatchSize, cancellationToken);
 
             foreach (var notification in notifications)
             {
