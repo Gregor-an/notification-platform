@@ -1,5 +1,9 @@
 using Application.Notifications.Commands.CreateNotification;
 using Infrastructure.DependencyInjection;
+using System.Text.Json.Serialization;
+using FluentValidation.AspNetCore;
+using API.Validators;
+using FluentValidation;
 
 namespace API
 {
@@ -9,12 +13,24 @@ namespace API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
+            });
+
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateNotificationRequestValidator>();
+
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.UseInlineDefinitionsForEnums();
+            });
 
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddScoped<CreateNotificationCommandHandler>();
+
 
             var app = builder.Build();
 

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Domain.Enums;
 
 namespace Contracts.Requests
 {
@@ -14,10 +15,8 @@ namespace Contracts.Requests
         [Required]
         public string Body { get; set; } = string.Empty;
 
-        [Range(1, 3)]
-        public int ChannelType { get; set; }
+        public ChannelType ChannelType { get; set; }
 
-        [Range(0, 2)]
-        public int Priority { get; set; }
+        public NotificationPriority Priority { get; set; }
     }
 }

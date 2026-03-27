@@ -20,8 +20,8 @@ namespace API.Controllers
                 request.Recipient,
                 request.Subject,
                 request.Body,
-                (ChannelType)request.ChannelType,
-                (NotificationPriority)request.Priority);
+                request.ChannelType,
+                request.Priority);
 
             var id = await handler.HandleAsync(command, cancellationToken);
 
