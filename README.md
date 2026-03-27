@@ -188,5 +188,5 @@ This project was created as a portfolio project to demonstrate:
 **Yehor Poliakov**  
 .NET Backend Developer
 
-- LinkedIn: https://linkedin.com/in/yehorpoliakov
+- LinkedIn: https://www.linkedin.com/in/yehor-poliakov-911252203
 - Email: poliakovyehor@gmail.com
