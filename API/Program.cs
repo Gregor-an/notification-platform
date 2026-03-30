@@ -1,4 +1,6 @@
 using Application.Notifications.Commands.CreateNotification;
+using Application.Notifications.Queries.GetNotificationById;
+using Application.Notifications.Queries.GetNotifications;
 using Infrastructure.DependencyInjection;
 using System.Text.Json.Serialization;
 using FluentValidation.AspNetCore;
@@ -30,6 +32,8 @@ namespace API
 
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddScoped<CreateNotificationCommandHandler>();
+            builder.Services.AddScoped<GetNotificationsQueryHandler>();
+            builder.Services.AddScoped<GetNotificationByIdQueryHandler>();
 
 
             var app = builder.Build();

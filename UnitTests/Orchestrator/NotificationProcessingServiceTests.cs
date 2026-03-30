@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Interfaces.Providers;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
@@ -22,7 +22,8 @@ namespace UnitTests.Orchestrator
         private static readonly NotificationProcessingOptions DefaultOptions = new()
         {
             BatchSize = 10,
-            IntervalSeconds = 5
+            IntervalSeconds = 5,
+            MaxAttempts = 3
         };
 
         public NotificationProcessingServiceTests()
@@ -30,6 +31,14 @@ namespace UnitTests.Orchestrator
             _repositoryMock = new Mock<INotificationRepository>();
             _senderMock = new Mock<INotificationSender>();
             _senderMock.Setup(x => x.ChannelType).Returns(ChannelType.Email);
+
+            // Default: no pending or retryable notifications
+            _repositoryMock
+                .Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Notification>());
+            _repositoryMock
+                .Setup(x => x.GetRetryBatchAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Notification>());
 
             _service = new NotificationProcessingService(
                 _repositoryMock.Object,
@@ -44,13 +53,28 @@ namespace UnitTests.Orchestrator
             ChannelType.Email,
             NotificationPriority.Normal);
 
+        private static Notification CreateFailedNotification(int existingAttempts = 1)
+        {
+            var notification = new Notification(
+                new Recipient("test@example.com"),
+                new MessageContent("Subject", "Body"),
+                ChannelType.Email,
+                NotificationPriority.Normal);
+
+            for (var i = 0; i < existingAttempts; i++)
+            {
+                notification.MarkProcessing();
+                var attempt = notification.StartAttempt();
+                attempt.MarkFailed("Previous failure.");
+                notification.MarkFailed();
+            }
+
+            return notification;
+        }
+
         [Fact]
         public async Task ProcessPendingAsync_WhenNoPendingNotifications_ShouldNotCallSender()
         {
-            _repositoryMock
-                .Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Notification>());
-
             await _service.ProcessPendingAsync(CancellationToken.None);
 
             _senderMock.Verify(
@@ -165,14 +189,42 @@ namespace UnitTests.Orchestrator
         [Fact]
         public async Task ProcessPendingAsync_UsesBatchSizeFromOptions_ShouldPassCorrectBatchSize()
         {
-            _repositoryMock
-                .Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Notification>());
-
             await _service.ProcessPendingAsync(CancellationToken.None);
 
             _repositoryMock.Verify(
                 x => x.GetPendingBatchAsync(DefaultOptions.BatchSize, It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ProcessPendingAsync_WhenFailedNotificationIsRetryable_ShouldRetry()
+        {
+            var notification = CreateFailedNotification(existingAttempts: 1);
+
+            _repositoryMock
+                .Setup(x => x.GetRetryBatchAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Notification> { notification });
+
+            _senderMock
+                .Setup(x => x.SendAsync(notification, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(SendResult.Success());
+
+            await _service.ProcessPendingAsync(CancellationToken.None);
+
+            notification.Status.Should().Be(NotificationStatus.Delivered);
+            notification.Attempts.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task ProcessPendingAsync_UsesMaxAttemptsFromOptions_WhenFetchingRetryBatch()
+        {
+            await _service.ProcessPendingAsync(CancellationToken.None);
+
+            _repositoryMock.Verify(
+                x => x.GetRetryBatchAsync(
+                    DefaultOptions.BatchSize,
+                    DefaultOptions.MaxAttempts,
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

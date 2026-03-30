@@ -27,11 +27,38 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
+        public async Task<(List<Notification> Items, int TotalCount)> GetPagedAsync(
+            int page, int pageSize, CancellationToken cancellationToken)
+        {
+            var query = _dbContext.Notifications.Include(x => x.Attempts);
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderByDescending(x => x.CreatedUtc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
+
         public Task<List<Notification>> GetPendingBatchAsync(int batchSize, CancellationToken cancellationToken)
         {
             return _dbContext.Notifications
                 .Include(x => x.Attempts)
                 .Where(x => x.Status == NotificationStatus.Pending)
+                .OrderBy(x => x.CreatedUtc)
+                .Take(batchSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        public Task<List<Notification>> GetRetryBatchAsync(
+            int batchSize, int maxAttempts, CancellationToken cancellationToken)
+        {
+            return _dbContext.Notifications
+                .Include(x => x.Attempts)
+                .Where(x => x.Status == NotificationStatus.Failed && x.Attempts.Count < maxAttempts)
                 .OrderBy(x => x.CreatedUtc)
                 .Take(batchSize)
                 .ToListAsync(cancellationToken);

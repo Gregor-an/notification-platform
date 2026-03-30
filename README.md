@@ -11,7 +11,7 @@ A .NET backend service for processing, delivering, and tracking notifications.
 
 Notification Platform is a portfolio project that simulates a small production-style notification service.
 
-The system accepts notification requests through a REST API, stores them in a database, and processes them asynchronously in the background. The current implementation is focused on the **Email** channel, while the architecture is prepared for future support of **Sms** and **Push** notifications.
+The system accepts notification requests through a REST API, stores them in a database, and processes them asynchronously in the background. Email delivery is handled via SMTP (MailKit). SMS and Push channels are supported with mock providers, ready for real integrations.
 
 This project is intended to demonstrate backend engineering practices such as clean architecture, background processing, validation, testing, and maintainable service design.
 
@@ -45,22 +45,15 @@ Repository root
 
 The project currently includes:
 
-- Create notification API
+- Create, list, and detail notification API endpoints
 - Persistent storage with EF Core
-- Background processing worker
-- Email notification flow
+- Background processing worker with configurable retry policy
+- Email delivery via SMTP (MailKit)
+- SMS and Push notification channels (mock providers)
 - Delivery attempt tracking
 - Request validation with FluentValidation
 - Unit and integration tests
 - CI and static analysis with GitHub Actions
-
-The domain model already includes support for:
-
-- `Email`
-- `Sms`
-- `Push`
-
-At the moment, **Sms** and **Push** are reserved for future extension and are not fully implemented yet.
 
 ## Tech Stack
 
@@ -142,6 +135,35 @@ Creates a new notification and queues it for delivery.
 }
 ```
 
+### `GET /api/notifications?page=1&pageSize=20`
+
+Returns a paginated list of all notifications.
+
+#### Response
+
+```json
+{
+  "items": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "recipient": "user@example.com",
+      "channelType": "Email",
+      "status": "Pending",
+      "priority": "Normal",
+      "createdUtc": "2026-03-30T10:00:00Z",
+      "attemptCount": 0
+    }
+  ],
+  "totalCount": 1,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+### `GET /api/notifications/{id}`
+
+Returns full details for a single notification, including all delivery attempts. Returns `404` if not found.
+
 ## Testing
 
 The project includes:
@@ -165,11 +187,11 @@ The repository includes GitHub Actions workflows for:
 - [x] Delivery attempt tracking
 - [x] FluentValidation for incoming requests
 - [x] Unit and integration tests
-- [ ] Notification details and listing endpoints
-- [ ] Retry policy with configurable max attempts
+- [x] Notification details and listing endpoints
+- [x] Retry policy with configurable max attempts
+- [x] SMS provider (mock)
+- [x] Push provider (mock)
 - [ ] Simple UI dashboard
-- [ ] SMS provider
-- [ ] Push provider
 
 ## Why This Project
 
