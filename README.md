@@ -60,6 +60,7 @@ The project currently includes:
 - C#
 - .NET 8
 - ASP.NET Core Web API
+- Blazor Server (MudBlazor)
 - Entity Framework Core
 - SQL Server
 - FluentValidation
@@ -191,7 +192,7 @@ The repository includes GitHub Actions workflows for:
 - [x] Retry policy with configurable max attempts
 - [x] SMS provider (mock)
 - [x] Push provider (mock)
-- [ ] Simple UI dashboard
+- [x] Simple UI dashboard (Blazor Server + MudBlazor)
 
 ## Why This Project
 

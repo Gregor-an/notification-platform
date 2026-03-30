@@ -1,7 +1,110 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
+@using Domain.Enums
+@using Web.Services
+@using Web.Components.Shared
+@inject NotificationApiClient Api
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard — Notification Platform</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudText Typo="Typo.h5" Class="mb-4">Dashboard</MudText>
 
-Welcome to your new app.
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error">@_error</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.overline">Total</MudText>
+                <MudText Typo="Typo.h4"><b>@_totalCount</b></MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.overline" Color="Color.Info">Pending</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Info"><b>@_pendingCount</b></MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.overline" Color="Color.Success">Delivered</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Success"><b>@_deliveredCount</b></MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.overline" Color="Color.Error">Failed</MudText>
+                <MudText Typo="Typo.h4" Color="Color.Error"><b>@_failedCount</b></MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.h6" Class="mb-2">Recent Notifications</MudText>
+    <MudPaper Elevation="2">
+        <MudTable Items="@_recent" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>Recipient</MudTh>
+                <MudTh>Channel</MudTh>
+                <MudTh>Priority</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Created</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Recipient">@context.Recipient</MudTd>
+                <MudTd DataLabel="Channel"><ChannelChip Channel="@context.ChannelType" /></MudTd>
+                <MudTd DataLabel="Priority"><PriorityChip Priority="@context.Priority" /></MudTd>
+                <MudTd DataLabel="Status"><StatusChip Status="@context.Status" /></MudTd>
+                <MudTd DataLabel="Created">@context.CreatedUtc.ToLocalTime().ToString("MMM dd, HH:mm")</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small"
+                                   Href="@($"/notifications/{context.Id}")" />
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText Class="pa-4">No notifications yet.</MudText>
+            </NoRecordsContent>
+        </MudTable>
+    </MudPaper>
+}
+
+@code {
+    private bool _loading = true;
+    private string? _error;
+    private int _totalCount;
+    private int _pendingCount;
+    private int _deliveredCount;
+    private int _failedCount;
+    private List<Application.DTOs.NotificationSummaryDto> _recent = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Api.GetNotificationsAsync(1, 100);
+            if (result is not null)
+            {
+                _totalCount     = result.TotalCount;
+                _pendingCount   = result.Items.Count(x => x.Status == NotificationStatus.Pending);
+                _deliveredCount = result.Items.Count(x => x.Status == NotificationStatus.Delivered);
+                _failedCount    = result.Items.Count(x => x.Status == NotificationStatus.Failed);
+                _recent         = result.Items.OrderByDescending(x => x.CreatedUtc).Take(5).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load dashboard: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

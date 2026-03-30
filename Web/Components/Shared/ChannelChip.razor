@@ -1,0 +1,16 @@
+@using Domain.Enums
+
+<MudChip T="string" Color="Color.Surface" Size="Size.Small" Variant="Variant.Outlined"
+         Icon="@GetIcon()">@Channel.ToString()</MudChip>
+
+@code {
+    [Parameter] public ChannelType Channel { get; set; }
+
+    private string GetIcon() => Channel switch
+    {
+        ChannelType.Email => Icons.Material.Filled.Email,
+        ChannelType.Sms   => Icons.Material.Filled.Sms,
+        ChannelType.Push  => Icons.Material.Filled.NotificationsActive,
+        _                 => Icons.Material.Filled.Send
+    };
+}

@@ -1,0 +1,16 @@
+@using Domain.Enums
+
+<MudChip T="string" Color="@GetColor()" Size="Size.Small" Variant="Variant.Filled">@Status.ToString()</MudChip>
+
+@code {
+    [Parameter] public NotificationStatus Status { get; set; }
+
+    private Color GetColor() => Status switch
+    {
+        NotificationStatus.Delivered  => Color.Success,
+        NotificationStatus.Failed     => Color.Error,
+        NotificationStatus.Processing => Color.Warning,
+        NotificationStatus.Cancelled  => Color.Default,
+        _                             => Color.Info
+    };
+}

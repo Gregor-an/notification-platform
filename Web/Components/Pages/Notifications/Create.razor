@@ -1,0 +1,131 @@
+@page "/notifications/create"
+@rendermode InteractiveServer
+@using Domain.Enums
+@using Contracts.Requests
+@using Web.Services
+@inject NotificationApiClient Api
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Send Notification — Notification Platform</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Send New Notification</MudText>
+
+<MudPaper Class="pa-6" Elevation="2" Style="max-width: 640px;">
+    <MudForm @ref="_form" @bind-IsValid="_isValid">
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_request.Recipient"
+                              Label="Recipient"
+                              Placeholder="email@example.com or phone number"
+                              Required="true"
+                              RequiredError="Recipient is required"
+                              MaxLength="256"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_request.ChannelType"
+                           Label="Channel"
+                           Variant="Variant.Outlined">
+                    @foreach (var channel in Enum.GetValues<ChannelType>())
+                    {
+                        <MudSelectItem Value="@channel">@channel.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_request.Priority"
+                           Label="Priority"
+                           Variant="Variant.Outlined">
+                    @foreach (var priority in Enum.GetValues<NotificationPriority>())
+                    {
+                        <MudSelectItem Value="@priority">@priority.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_request.Subject"
+                              Label="Subject (optional)"
+                              MaxLength="200"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_request.Body"
+                              Label="Body"
+                              Required="true"
+                              RequiredError="Body is required"
+                              Lines="4"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+
+            @if (_submitError != null)
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Error">@_submitError</MudAlert>
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Send"
+                               OnClick="SubmitAsync"
+                               Disabled="@_submitting">
+                        @(_submitting ? "Sending..." : "Send")
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" Href="/notifications">Cancel</MudButton>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private MudForm _form = default!;
+    private bool _isValid;
+    private bool _submitting;
+    private string? _submitError;
+
+    private readonly CreateNotificationRequest _request = new()
+    {
+        ChannelType = ChannelType.Email,
+        Priority    = NotificationPriority.Normal
+    };
+
+    private async Task SubmitAsync()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+
+        _submitting  = true;
+        _submitError = null;
+
+        try
+        {
+            var response = await Api.CreateAsync(_request);
+            if (response.IsSuccessStatusCode)
+            {
+                var created = await response.Content.ReadFromJsonAsync<Contracts.Responses.CreateNotificationResponse>();
+                Snackbar.Add("Notification sent successfully!", Severity.Success);
+                Nav.NavigateTo($"/notifications/{created!.Id}");
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _submitError = $"Error {(int)response.StatusCode}: {body}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _submitError = $"Failed to send: {ex.Message}";
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

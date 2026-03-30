@@ -1,0 +1,146 @@
+@page "/notifications/{Id:guid}"
+@rendermode InteractiveServer
+@using Domain.Enums
+@using Web.Services
+@using Web.Components.Shared
+@inject NotificationApiClient Api
+
+<PageTitle>Notification Detail — Notification Platform</PageTitle>
+
+<MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Href="/notifications"
+           Variant="Variant.Text" Class="mb-4">Back</MudButton>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_notFound)
+{
+    <MudAlert Severity="Severity.Warning">Notification not found.</MudAlert>
+}
+else if (_error != null)
+{
+    <MudAlert Severity="Severity.Error">@_error</MudAlert>
+}
+else if (_notification is not null)
+{
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudText Typo="Typo.h6">Notification Details</MudText>
+                    <MudSpacer />
+                    <StatusChip Status="@_notification.Status" />
+                    <ChannelChip Channel="@_notification.ChannelType" />
+                    <PriorityChip Priority="@_notification.Priority" />
+                </MudStack>
+
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">ID</MudText>
+                        <MudText Typo="Typo.body2">@_notification.Id</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Recipient</MudText>
+                        <MudText Typo="Typo.body2">@_notification.Recipient</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Created</MudText>
+                        <MudText Typo="Typo.body2">@_notification.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+                    </MudItem>
+                    @if (_notification.ProcessedUtc.HasValue)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Processed</MudText>
+                            <MudText Typo="Typo.body2">@_notification.ProcessedUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+                        </MudItem>
+                    }
+                    @if (!string.IsNullOrEmpty(_notification.Subject))
+                    {
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Subject</MudText>
+                            <MudText Typo="Typo.body2">@_notification.Subject</MudText>
+                        </MudItem>
+                    }
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Body</MudText>
+                        <MudText Typo="Typo.body2">@_notification.Body</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">
+                    Delivery Attempts (@_notification.Attempts.Count)
+                </MudText>
+
+                @if (_notification.Attempts.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No delivery attempts yet.</MudText>
+                }
+                else
+                {
+                    <MudTable Items="@_notification.Attempts" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>#</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Started</MudTh>
+                            <MudTh>Completed</MudTh>
+                            <MudTh>Failure Reason</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="#">@context.AttemptNumber</MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(context.Status == Domain.Enums.AttemptStatus.Succeeded ? Color.Success : context.Status == Domain.Enums.AttemptStatus.Failed ? Color.Error : Color.Default)"
+                                         Variant="Variant.Filled">
+                                    @context.Status.ToString()
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Started">@context.CreatedUtc.ToLocalTime().ToString("HH:mm:ss")</MudTd>
+                            <MudTd DataLabel="Completed">
+                                @(context.CompletedUtc.HasValue
+                                    ? context.CompletedUtc.Value.ToLocalTime().ToString("HH:mm:ss")
+                                    : "—")
+                            </MudTd>
+                            <MudTd DataLabel="Failure Reason">
+                                @(string.IsNullOrEmpty(context.FailureReason) ? "—" : context.FailureReason)
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _loading = true;
+    private bool _notFound;
+    private string? _error;
+    private Application.DTOs.NotificationDetailDto? _notification;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Api.GetByIdAsync(Id);
+            if (result is null)
+                _notFound = true;
+            else
+                _notification = result.Notification;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load notification: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
