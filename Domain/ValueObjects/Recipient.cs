@@ -1,9 +1,9 @@
-﻿
+
 namespace Domain.ValueObjects
 {
     public sealed class Recipient
     {
-        public string Value { get; private set; }
+        public string Value { get; private set; } = null!;
 
         private Recipient() { }
 

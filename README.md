@@ -1,4 +1,4 @@
-﻿# Notification Platform
+# Notification Platform
 
 > **Status:** In progress — core functionality is implemented, additional features are planned.
 
@@ -20,18 +20,16 @@ This project is intended to demonstrate backend engineering practices such as cl
 The solution follows a layered architecture with clear separation of responsibilities:
 
 ```text
-src/
-├── API                  # ASP.NET Core Web API
-├── Application          # Use cases, commands, queries, abstractions
-├── Contracts            # Request/response DTOs
-├── Domain               # Entities, value objects, enums, business rules
-├── Infrastructure       # EF Core, repositories, provider implementations
-├── Orchestrator         # Background worker for pending notifications
-└── Web                  # Planned UI
-
-tests/
-├── UnitTests
-└── IntegrationTests
+Repository root
+├── API/                  # ASP.NET Core Web API
+├── Application/          # Use cases, commands, queries, abstractions
+├── Contracts/            # Request/response DTOs
+├── Domain/               # Entities, value objects, enums, business rules
+├── Infrastructure/       # EF Core, repositories, provider implementations
+├── Orchestrator/         # Background worker for pending notifications
+├── Web/                  # Planned UI
+├── UnitTests/
+└── IntegrationTests/
 ```
 
 ## How It Works
@@ -95,20 +93,22 @@ cd notification-platform
 ### Apply database migrations
 
 ```bash
-dotnet ef database update --project src/Infrastructure --startup-project src/API
+dotnet ef database update --project Infrastructure --startup-project API
 ```
 
 ### Run the API
 
 ```bash
-dotnet run --project src/API
+dotnet run --project API
 ```
 
 ### Run the background worker
 
 ```bash
-dotnet run --project src/Orchestrator
+dotnet run --project Orchestrator
 ```
+
+Run these commands from the repository root (the folder that contains `NotificationPlatform.sln`), or pass full paths to `--project` / `--startup-project` if you run them elsewhere.
 
 ### Run tests
 
