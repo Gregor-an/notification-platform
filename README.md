@@ -110,6 +110,31 @@ Run these commands from the repository root (the folder that contains `Notificat
 dotnet test
 ```
 
+## Configuration
+
+`appsettings.json` is a **template** — it defines the shape of all config keys with safe placeholder values and is committed to source control. Sensitive values (passwords, credentials) are never stored there; they are layered on top at runtime.
+
+| Environment | How to supply secrets |
+|---|---|
+| Local development | .NET User Secrets (stored outside the repo, never committed) |
+| Production / CI | Environment variables (`Smtp__Password=xxx`) |
+
+### SMTP — local setup
+
+```bash
+cd Orchestrator
+dotnet user-secrets set "Smtp:Host"        "smtp.gmail.com"
+dotnet user-secrets set "Smtp:Port"        "587"
+dotnet user-secrets set "Smtp:Username"    "your@gmail.com"
+dotnet user-secrets set "Smtp:Password"    "your-app-password"
+dotnet user-secrets set "Smtp:FromAddress" "your@gmail.com"
+dotnet user-secrets set "Smtp:FromName"    "Notification Platform"
+```
+
+> **Gmail note:** you cannot use your account password directly. Generate an **App Password** via Google Account → Security → 2-Step Verification → App Passwords and use that 16-character code instead.
+
+The application reads all values through `IOptions<SmtpOptions>`. It doesn't matter whether they come from `appsettings.json`, User Secrets, or environment variables — the merged result is identical at runtime.
+
 ## API Example
 
 ### `POST /api/notifications`
