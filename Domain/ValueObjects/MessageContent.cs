@@ -1,10 +1,10 @@
-﻿
+
 namespace Domain.ValueObjects
 {
     public sealed class MessageContent
     {
-        public string Subject { get; private set; }
-        public string Body { get; private set; }
+        public string Subject { get; private set; } = null!;
+        public string Body { get; private set; } = null!;
 
         private MessageContent() { }
 

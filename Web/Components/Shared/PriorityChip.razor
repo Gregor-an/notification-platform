@@ -1,0 +1,14 @@
+@using Domain.Enums
+
+<MudChip T="string" Color="@GetColor()" Size="Size.Small" Variant="Variant.Outlined">@Priority.ToString()</MudChip>
+
+@code {
+    [Parameter] public NotificationPriority Priority { get; set; }
+
+    private Color GetColor() => Priority switch
+    {
+        NotificationPriority.High => Color.Warning,
+        NotificationPriority.Low  => Color.Default,
+        _                         => Color.Info
+    };
+}

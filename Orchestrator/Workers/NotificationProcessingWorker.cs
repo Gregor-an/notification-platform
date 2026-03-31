@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Orchestrator.Services;
+using Orchestrator.Settings;
 
 namespace Orchestrator.Workers
 {
@@ -9,12 +11,14 @@ namespace Orchestrator.Workers
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<NotificationProcessingWorker> _logger;
+        private readonly NotificationProcessingOptions _options;
 
         public NotificationProcessingWorker(IServiceScopeFactory _scopeFactory, 
-                ILogger<NotificationProcessingWorker> logger)
+                ILogger<NotificationProcessingWorker> logger, IOptions<NotificationProcessingOptions> options)
         {
             this._scopeFactory = _scopeFactory;
             _logger = logger;
+            _options = options.Value;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -34,7 +38,7 @@ namespace Orchestrator.Workers
                     _logger.LogError(ex, "Unhandled error in NotificationProcessingWorker.");
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_options.IntervalSeconds), stoppingToken);
             }
         }
     }

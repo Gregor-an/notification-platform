@@ -1,4 +1,6 @@
+using MudBlazor.Services;
 using Web.Components;
+using Web.Services;
 
 namespace Web
 {
@@ -10,6 +12,11 @@ namespace Web
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddMudServices();
+
+            builder.Services.AddHttpClient<NotificationApiClient>(client =>
+                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
 
             var app = builder.Build();
 
